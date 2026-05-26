@@ -4,330 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Mayjin Empire — Tactical Overlord Console</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        body {
-            background: #03070f;
-            font-family: 'Segoe UI', 'Roboto', 'Orbitron', monospace;
-            height: 100vh;
-            overflow: hidden;
-            color: #e2e8f0;
-        }
-
-        /* ========= TOP DASHBOARD ========= */
-        .imperial-hud {
-            height: 72px;
-            background: rgba(3, 12, 24, 0.96);
-            backdrop-filter: blur(8px);
-            border-bottom: 2px solid #2d3e5f;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 32px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-            z-index: 20;
-            position: relative;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 900;
-            letter-spacing: 3px;
-            background: linear-gradient(135deg, #f0f9ff, #7dd3fc);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            text-shadow: 0 0 12px rgba(0,243,255,0.4);
-        }
-
-        .metric-strip {
-            display: flex;
-            gap: 18px;
-        }
-
-        .metric-card {
-            background: #0a121fcc;
-            border-radius: 10px;
-            padding: 5px 14px;
-            border: 1px solid #2d3e5f;
-            text-align: center;
-            min-width: 85px;
-        }
-        .metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #7e8a98; }
-        .metric-value { font-size: 18px; font-weight: 800; }
-        .gold { color: #facc15; text-shadow: 0 0 3px #ffb347; }
-        .food { color: #4ade80; }
-        .army { color: #38bdf8; }
-        .approval { color: #f97316; }
-        .religion { color: #c084fc; }
-        .turn { color: #fff; border-bottom: 1px solid #00f3ff; }
-
-        /* ========= MAIN LAYOUT ========= */
-        .command-center {
-            display: flex;
-            height: calc(100vh - 72px);
-            width: 100%;
-        }
-
-        /* MAP ZONE — STRATEGIC IMAGE OVERLAY */
-        .holo-map {
-            flex: 1;
-            background: #01040c;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .map-header {
-            padding: 12px 28px 0 28px;
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 3px;
-            color: #5b7a9a;
-            display: flex;
-            justify-content: space-between;
-            z-index: 5;
-        }
-
-        .map-wrapper {
-            position: relative;
-            flex: 1;
-            margin: 12px 24px 24px 24px;
-            background: #00000055;
-            border-radius: 28px;
-            border: 1px solid #2a3a55;
-            overflow: hidden;
-            box-shadow: 0 20px 35px -10px black;
-        }
-
-        .tactical-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            background: #03070f;
-            pointer-events: none;  /* clicks go through to overlays */
-        }
-
-        /* interactive pod overlays */
-        .map-overlays {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        .region-pod {
-            position: absolute;
-            width: 180px;
-            background: rgba(8, 18, 28, 0.88);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1.5px solid #3e5a7c;
-            padding: 12px 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-            font-family: 'Segoe UI', 'Roboto', monospace;
-        }
-
-        .region-pod:hover {
-            transform: translateY(-3px);
-            border-color: #00f3ff;
-            background: rgba(12, 25, 45, 0.96);
-            box-shadow: 0 0 18px rgba(0, 243, 255, 0.3);
-        }
-
-        .region-pod.rebel-glint {
-            border-color: #ff3366 !important;
-            animation: pulseRed 1.2s infinite alternate;
-            background: rgba(40, 10, 20, 0.9);
-        }
-
-        @keyframes pulseRed {
-            0% { box-shadow: 0 0 2px #ff3366; border-width: 1.5px; }
-            100% { box-shadow: 0 0 18px #ff3366; border-width: 2.5px; }
-        }
-
-        .pod-title {
-            font-weight: 900;
-            font-size: 18px;
-            letter-spacing: 1px;
-            color: #f0f4fa;
-            margin-bottom: 5px;
-        }
-
-        .pod-status {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin: 6px 0 2px;
-        }
-        .status-safe { color: #4ade80; }
-        .status-rebel { color: #ff5e7e; text-shadow: 0 0 4px #ff000080; }
-
-        .pod-detail {
-            font-size: 10px;
-            color: #9aaebf;
-            line-height: 1.5;
-        }
-
-        .capital-core {
-            position: absolute;
-            width: 70px;
-            height: 70px;
-            background: radial-gradient(circle, #facc15, #b45309);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 36px;
-            box-shadow: 0 0 35px rgba(250, 204, 21, 0.7);
-            border: 2px solid #ffdf7e;
-            pointer-events: none;
-            z-index: 12;
-        }
-
-        /* RIGHT MANAGEMENT DECK */
-        .governance-deck {
-            width: 420px;
-            background: rgba(5, 12, 22, 0.96);
-            backdrop-filter: blur(12px);
-            border-left: 3px solid #1f334a;
-            display: flex;
-            flex-direction: column;
-            box-shadow: -12px 0 32px rgba(0,0,0,0.8);
-        }
-
-        .deck-header {
-            padding: 28px 24px 12px 24px;
-            border-bottom: 1px solid #253c58;
-        }
-        .deck-header h2 {
-            font-size: 26px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff, #a5f3ff);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .warning-badge {
-            background: #ff3366;
-            color: white;
-            font-size: 11px;
-            font-weight: bold;
-            padding: 4px 12px;
-            border-radius: 20px;
-            display: inline-block;
-            margin-top: 8px;
-        }
-
-        .stat-panel {
-            background: #07111e80;
-            margin: 20px 24px;
-            padding: 16px;
-            border-radius: 18px;
-            border: 1px solid #2a405c;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-        .stat-item .stat-label {
-            font-size: 9px;
-            color: #7b8ba3;
-            text-transform: uppercase;
-        }
-        .stat-item .stat-number {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .event-card {
-            background: #010b17;
-            margin: 0 24px 20px 24px;
-            padding: 18px;
-            border-radius: 20px;
-            border-left: 5px solid #00e0ff;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
-        }
-        .event-desc {
-            font-size: 14px;
-            line-height: 1.45;
-            margin-bottom: 16px;
-            color: #cbd5e6;
-        }
-
-        .choice-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .choice-btn {
-            background: linear-gradient(95deg, #101e30, #08121f);
-            border: 1px solid #2d4a6e;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-weight: 600;
-            font-size: 13px;
-            text-align: left;
-            display: flex;
-            justify-content: space-between;
-            color: #eef4ff;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        .choice-btn:hover {
-            border-color: #00f3ff;
-            background: #132433;
-            transform: translateX(5px);
-        }
-
-        .modal-lore {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.94);
-            backdrop-filter: blur(12px);
-            z-index: 200;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-box {
-            background: #0a1422;
-            border: 2px solid #00f3ff;
-            border-radius: 32px;
-            padding: 40px;
-            max-width: 480px;
-            text-align: center;
-        }
-        .hidden {
-            display: none;
-        }
-        .restart-btn {
-            background: #00f3ff;
-            color: #010101;
-            border: none;
-            padding: 12px 32px;
-            font-weight: bold;
-            margin-top: 20px;
-            border-radius: 40px;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="imperial-hud">
-    <div class="logo">⚔️ MAYJIN EMPIRE</div>
+    <div class="logo">⚡ MAYJIN EMPIRE</div>
     <div class="metric-strip">
         <div class="metric-card"><div class="metric-label">TURN</div><div class="metric-value turn" id="ui-turn">1</div></div>
         <div class="metric-card"><div class="metric-label">GOLD</div><div class="metric-value gold" id="ui-gold">160</div></div>
@@ -338,28 +20,40 @@
     </div>
 </div>
 
-<div class="command-center">
-    <div class="holo-map">
-        <div class="map-header">
-            <span>📍 MAPID: SECTOR-04B // WESTMOUNTAINS // SOUTHERNSEA</span>
-            <span>🕒 SYSTEMTIME: 21:47</span>
+<div class="command-pavilion">
+    <!-- LEFT COLUMN: 3 PROVINCES (CLICKABLE) -->
+    <div class="provinces-panel">
+        <div class="region-header"><span>⚙️ SECTOR-04B // TERRITORIAL NODES</span><span>🌡️ TEMP GRADIENT: -15°C ~ -8°C</span></div>
+        
+        <div id="card-north" class="province-card" data-prov="north">
+            <div class="province-name">NORTH PLAINS <span class="status-badge status-secure" id="badge-north">SECURE</span></div>
+            <div class="province-details">
+                <span>💰 26g</span> <span>🌾 42f</span> <span>⚔️ 22</span> <span>🌡️ -12°C</span> <span>🌾 Grain fields</span>
+            </div>
         </div>
-        <div class="map-wrapper">
-            <!-- ORIGINAL ATTACHED IMAGE (renders as map background) -->
-            <img class="tactical-image" src="image_a5927692.png" alt="Imperial Cartography" onerror="this.src='https://placehold.co/1200x800/0a1120/3e6a9e?text=STRATEGIC+MAP+LOADING'">
-            <div class="map-overlays" id="regionOverlays"></div>
-            <div class="capital-core" style="top: 44%; left: 44%; transform: translate(-50%, -50%);">🏰</div>
+
+        <div id="card-south" class="province-card" data-prov="south">
+            <div class="province-name">SOUTH VALLEY <span class="status-badge status-secure" id="badge-south">SECURE</span></div>
+            <div class="province-details">
+                <span>💰 22g</span> <span>🌾 48f</span> <span>⚔️ 24</span> <span>🌡️ -12°C</span> <span>🌿 Fertile lowlands</span>
+            </div>
         </div>
-        <div class="map-header" style="justify-content: flex-end; padding-top: 0;">
-            <span>❄️ TEMP gradient: -15°C to -8°C</span>
+
+        <div id="card-east" class="province-card" data-prov="east">
+            <div class="province-name">EAST PORT <span class="status-badge status-secure" id="badge-east">SECURE</span></div>
+            <div class="province-details">
+                <span>💰 38g</span> <span>🌾 16f</span> <span>⚔️ 18</span> <span>🌡️ -15°C</span> <span>⚓ Maritime trade</span>
+            </div>
         </div>
+        <div class="map-footer">🗺️ MAPID: SECTOR-04B // WESTMOUNTAINS // SOUTHERNSEA  —  SYSTEMTIME: 21:47</div>
     </div>
 
-    <div class="governance-deck" id="governancePanel">
+    <!-- RIGHT PANEL: GOVERNANCE DECK -->
+    <div class="governance-deck" id="governanceDeck">
         <div class="deck-header">
             <h2 id="regionName">IMPERIAL CITADEL</h2>
-            <div id="rebelAlert" class="warning-badge hidden">⚠️ REBELLION THREAT</div>
-            <div style="font-size: 12px; color: #7c8ea0; margin-top: 6px;" id="regionSub">Select a province on the holo-map</div>
+            <div id="rebelAlert" class="warning-badge hidden">⚠️ REBELLION IMMINENT</div>
+            <div style="font-size: 12px; color: #8eaec9; margin-top: 8px;" id="regionSub">Select a province from the left sector</div>
         </div>
         <div class="stat-panel" id="provinceStats">
             <div class="stat-item"><div class="stat-label">LOYALTY</div><div class="stat-number" id="statLoyalty">—</div></div>
@@ -367,294 +61,22 @@
             <div class="stat-item"><div class="stat-label">FOOD YIELD</div><div class="stat-number" id="statFood">—</div></div>
             <div class="stat-item"><div class="stat-label">GARRISON</div><div class="stat-number" id="statMilitary">—</div></div>
         </div>
-        <div class="event-card">
-            <div class="event-desc" id="eventDesc">Click any region to access crisis management console. The Empire awaits your decree.</div>
+        <div class="event-card" id="eventCard">
+            <div class="event-title" id="eventTitle">⚜️ IMPERIAL DECREE</div>
+            <div class="event-desc" id="eventDesc">Click any region to access crisis management console. The Empire awaits your command.</div>
             <div class="choice-buttons" id="choicesContainer"></div>
         </div>
     </div>
 </div>
 
-<div id="endModal" class="modal-lore hidden">
+<div id="gameOverModal" class="modal hidden">
     <div class="modal-box">
-        <h1 id="modalTitle" style="font-size: 32px;">🏆</h1>
-        <p id="modalMsg" style="margin: 20px 0; font-size: 16px;">The Mayjin chronicles unfold...</p>
+        <h1 id="modalTitle" style="font-size: 34px;">🏆</h1>
+        <p id="modalMsg" style="margin: 20px 0; font-size: 16px;">Chronicle ends...</p>
         <button class="restart-btn" onclick="location.reload()">⟳ RESTART SIMULATION</button>
     </div>
 </div>
 
-<script>
-    // ========== FULL GAME STATE (5 PROVINCES BASED ON THE ATTACHED MAP) ==========
-    const provincesData = {
-        westMountains: { name: "WEST MOUNTAINS", loyalty: 78, taxes: 28, food: 18, military: 32, baseTemp: "-18°C", resources: "Low minerals" },
-        northPlains:   { name: "NORTH PLAINS",   loyalty: 82, taxes: 26, food: 42, military: 22, baseTemp: "-12°C", resources: "Grain fields" },
-        southValley:   { name: "SOUTH VALLEY",   loyalty: 84, taxes: 22, food: 48, military: 24, baseTemp: "-12°C", resources: "Fertile lowlands" },
-        eastPort:      { name: "EAST PORT",      loyalty: 76, taxes: 38, food: 16, military: 18, baseTemp: "-15°C", resources: "Maritime trade" },
-        southernSea:   { name: "SOUTHERN SEA",   loyalty: 70, taxes: 34, food: 22, military: 14, baseTemp: "-6°C",  resources: "Fishing & piracy" }
-    };
-
-    let empire = {
-        turn: 1,
-        gold: 160,
-        food: 130,
-        army: 85,
-        approval: 72,
-        religion: 58
-    };
-
-    let selectedRegionId = null;
-    let currentEvent = null;
-    let eventQueueTimer = false;
-
-    // ----- Dynamic Event Library (includes events for all 5 regions) -----
-    const eventLibrary = [
-        { id: "famine_crops", title: "🌾 FAMINE FRONT", desc: "Unusual frost kills harvests across agricultural zones. Starvation looms.",
-          states: ["northPlains", "southValley", "westMountains"], choices: [
-            { text: "Distribute Imperial grain reserves (-45 Food, +12 Loyalty)", effect: { empire: { food: -45, approval: 6 }, state: { loyalty: 12 } } },
-            { text: "Require corvée labour (-10 Loyalty, +8 Army)", effect: { empire: { army: 8, approval: -5 }, state: { loyalty: -10 } } },
-            { text: "Prayers to the old gods (+12 Devotion, -8 Food)", effect: { empire: { religion: 12, food: -8 }, state: { loyalty: 5 } } }
-        ]},
-        { id: "bandit_swarm", title: "⚔️ MARAUDER INCURSION", desc: "Raiders plunder trade routes and ambush caravans.",
-          states: ["northPlains", "eastPort", "westMountains", "southValley", "southernSea"], choices: [
-            { text: "Deploy legions (-25 Army, +14 Loyalty, +8 Taxes)", effect: { empire: { army: -25, approval: 5 }, state: { loyalty: 14, taxes: 8 } } },
-            { text: "Bribe warlords (-28 Gold, +6 Loyalty)", effect: { empire: { gold: -28 }, state: { loyalty: 6, military: 6 } } },
-            { text: "Enforce curfew (-12 Approval, +5 Army)", effect: { empire: { approval: -12, army: 5 }, state: { loyalty: -8 } } }
-        ]},
-        { id: "port_blockade", title: "⛓️ NAVAL BLOCKADE", desc: "Hostile privateers blockade East Port & Southern Sea. Trade stagnates.",
-          states: ["eastPort", "southernSea"], choices: [
-            { text: "Command retaliation fleet (-30 Army, +38 Gold)", effect: { empire: { army: -30, gold: 38 }, state: { loyalty: 12 } } },
-            { text: "Accept isolation (-40 Taxes, -18 Loyalty)", effect: { empire: { approval: -12 }, state: { taxes: -40, loyalty: -18 } } }
-        ]},
-        { id: "avalanche_disaster", title: "🏔️ MOUNTAIN WAIL", desc: "Avalanches cut off western mining routes. Infrastructure damaged.",
-          states: ["westMountains"], choices: [
-            { text: "Emergency engineering corps (-18 Gold, +5 Loyalty, +8 Food)", effect: { empire: { gold: -18 }, state: { loyalty: 5, food: 8 } } },
-            { text: "Abandon outer villages (-22 Loyalty, -15 Taxes)", effect: { empire: { approval: -7 }, state: { loyalty: -22, taxes: -15 } } }
-        ]},
-        { id: "sea_horrors", title: "🐉 LEVIATHAN OMEN", desc: "Sea serpents terrorize fishing fleets. Southern Sea morale collapses.",
-          states: ["southernSea"], choices: [
-            { text: "Offer lavish rituals (-28 Gold, +18 Devotion, +6 Loyalty)", effect: { empire: { gold: -28, religion: 18 }, state: { loyalty: 6, food: -5 } } },
-            { text: "Naval harpoon squadrons (-22 Army, +9 Food, +5 Loyalty)", effect: { empire: { army: -22 }, state: { military: 9, loyalty: 5, food: 9 } } }
-        ]},
-        { id: "cult_uprising", title: "🔥 HERETICAL MOVEMENT", desc: "Apocalyptic cult spreads propaganda, threatening stability.",
-          states: ["northPlains", "southValley", "eastPort", "westMountains", "southernSea"], choices: [
-            { text: "Religious inquisition (-24 Devotion, +16 Approval)", effect: { empire: { religion: -24, approval: 16 }, state: { loyalty: 18 } } },
-            { text: "Suppress by force (-16 Army, +10 Loyalty, -5 Approval)", effect: { empire: { army: -16, approval: -5 }, state: { loyalty: 10 } } }
-        ]}
-    ];
-
-    function updateUI() {
-        document.getElementById("ui-turn").innerText = empire.turn;
-        document.getElementById("ui-gold").innerText = Math.floor(empire.gold);
-        document.getElementById("ui-food").innerText = Math.floor(empire.food);
-        document.getElementById("ui-army").innerText = Math.floor(empire.army);
-        document.getElementById("ui-approval").innerText = Math.floor(empire.approval);
-        document.getElementById("ui-religion").innerText = Math.floor(empire.religion);
-        updateProvincePodsVisuals();
-    }
-
-    function updateProvincePodsVisuals() {
-        for (let [key, prov] of Object.entries(provincesData)) {
-            const podEl = document.getElementById(`pod-${key}`);
-            if (podEl) {
-                const statusSpan = podEl.querySelector('.pod-status');
-                if (prov.loyalty <= 40) {
-                    podEl.classList.add("rebel-glint");
-                    if(statusSpan) { statusSpan.innerText = "⚡ REBELLION RISK"; statusSpan.className = "pod-status status-rebel"; }
-                } else {
-                    podEl.classList.remove("rebel-glint");
-                    if(statusSpan) { statusSpan.innerText = "● SECURE"; statusSpan.className = "pod-status status-safe"; }
-                }
-            }
-        }
-    }
-
-    // Render interactive pods on image with precise positions (based on map sectors)
-    function buildOverlays() {
-        const container = document.getElementById("regionOverlays");
-        container.innerHTML = "";
-        // positions (relative %)
-        const positions = {
-            westMountains: { top: "28%", left: "8%" },
-            northPlains:   { top: "14%", left: "36%" },
-            southValley:   { top: "64%", left: "19%" },
-            eastPort:      { top: "32%", left: "74%" },
-            southernSea:   { top: "74%", left: "63%" }
-        };
-        for (let [id, data] of Object.entries(provincesData)) {
-            const pos = positions[id];
-            if (!pos) continue;
-            const pod = document.createElement("div");
-            pod.className = "region-pod";
-            pod.id = `pod-${id}`;
-            pod.style.top = pos.top;
-            pod.style.left = pos.left;
-            pod.style.transform = "translate(-10%, -10%)";
-            const loyalState = data.loyalty <= 40 ? "REBELLION RISK" : "SECURE";
-            const statusClass = data.loyalty <= 40 ? "status-rebel" : "status-safe";
-            pod.innerHTML = `
-                <div class="pod-title">${data.name}</div>
-                <div class="pod-status ${statusClass}">● ${loyalState}</div>
-                <div class="pod-detail">💰 ${data.taxes}g  🌾 ${data.food}f  ⚔️ ${data.military}</div>
-                <div class="pod-detail">🌡️ ${data.baseTemp} | ${data.resources}</div>
-            `;
-            pod.onclick = (e) => {
-                e.stopPropagation();
-                selectProvince(id);
-            };
-            container.appendChild(pod);
-        }
-        updateProvincePodsVisuals();
-    }
-
-    function selectProvince(provId) {
-        if (eventQueueTimer) return;
-        selectedRegionId = provId;
-        const prov = provincesData[provId];
-        document.getElementById("regionName").innerHTML = prov.name;
-        document.getElementById("regionSub").innerText = "Active directive panel";
-        document.getElementById("statLoyalty").innerText = prov.loyalty + "%";
-        document.getElementById("statTaxes").innerText = `+${prov.taxes}g`;
-        document.getElementById("statFood").innerText = `+${prov.food}f`;
-        document.getElementById("statMilitary").innerText = prov.military;
-        const alertDiv = document.getElementById("rebelAlert");
-        if (prov.loyalty <= 40) alertDiv.classList.remove("hidden");
-        else alertDiv.classList.add("hidden");
-
-        // roll crisis event for this region
-        const possibleEvents = eventLibrary.filter(ev => ev.states.includes(provId));
-        let chosenEvent = null;
-        if (possibleEvents.length === 0) {
-            // fallback universal event
-            chosenEvent = eventLibrary.find(ev => ev.id === "cult_uprising");
-        } else {
-            const randomIndex = Math.floor(Math.random() * possibleEvents.length);
-            chosenEvent = possibleEvents[randomIndex];
-        }
-        currentEvent = { ...chosenEvent, regionId: provId };
-        document.getElementById("eventDesc").innerHTML = `<strong style="color:#00f3ff">⚠️ ${currentEvent.title}</strong><br>${currentEvent.desc}`;
-        const choicesDiv = document.getElementById("choicesContainer");
-        choicesDiv.innerHTML = "";
-        currentEvent.choices.forEach((choice, idx) => {
-            const btn = document.createElement("div");
-            btn.className = "choice-btn";
-            btn.innerHTML = `<span>${choice.text}</span><span>▶</span>`;
-            btn.onclick = () => applyChoice(idx);
-            choicesDiv.appendChild(btn);
-        });
-    }
-
-    function applyChoice(choiceIdx) {
-        if (!currentEvent || eventQueueTimer) return;
-        const choice = currentEvent.choices[choiceIdx];
-        const region = provincesData[currentEvent.regionId];
-        
-        // apply empire effects
-        if (choice.effect.empire) {
-            for (let [stat, delta] of Object.entries(choice.effect.empire)) {
-                if (empire[stat] !== undefined) empire[stat] = Math.max(0, empire[stat] + delta);
-            }
-        }
-        // apply region state effects
-        if (choice.effect.state) {
-            for (let [stat, delta] of Object.entries(choice.effect.state)) {
-                if (region[stat] !== undefined) region[stat] = Math.max(0, region[stat] + delta);
-            }
-        }
-        // clamp loyalty, taxes etc
-        region.loyalty = Math.min(100, Math.max(0, region.loyalty));
-        region.taxes = Math.max(0, region.taxes);
-        region.food = Math.max(0, region.food);
-        region.military = Math.max(0, region.military);
-        
-        updateUI();
-        if (selectedRegionId === currentEvent.regionId) {
-            document.getElementById("statLoyalty").innerText = region.loyalty + "%";
-            document.getElementById("statTaxes").innerText = `+${region.taxes}g`;
-            document.getElementById("statFood").innerText = `+${region.food}f`;
-            document.getElementById("statMilitary").innerText = region.military;
-            if (region.loyalty <= 40) document.getElementById("rebelAlert").classList.remove("hidden");
-            else document.getElementById("rebelAlert").classList.add("hidden");
-        }
-
-        // disable choices during harvest transition
-        document.getElementById("choicesContainer").innerHTML = '<div style="padding:12px;text-align:center;">📜 Decree executed. Gathering tributes...</div>';
-        eventQueueTimer = true;
-        
-        setTimeout(() => {
-            resolveTurnAndHarvest();
-        }, 1300);
-    }
-
-    function resolveTurnAndHarvest() {
-        let totalGoldGen = 0;
-        let totalFoodGen = 0;
-        let rebelProvinces = 0;
-        for (let [id, prov] of Object.entries(provincesData)) {
-            const isRebel = prov.loyalty <= 40;
-            if (isRebel) {
-                totalGoldGen += Math.floor(prov.taxes * 0.25);
-                totalFoodGen += Math.floor(prov.food * 0.25);
-                empire.approval = Math.max(0, empire.approval - 4);
-                rebelProvinces++;
-            } else {
-                totalGoldGen += prov.taxes;
-                totalFoodGen += prov.food;
-            }
-        }
-        empire.gold += totalGoldGen;
-        empire.food += totalFoodGen;
-        empire.turn += 1;
-        
-        // passive approval drift, army upkeep slight
-        empire.approval = Math.min(100, Math.max(0, empire.approval + (rebelProvinces > 1 ? -2 : 1)));
-        empire.army = Math.max(0, empire.army - Math.floor(rebelProvinces * 0.7));
-        
-        updateUI();
-        
-        // Victory / loss conditions
-        let gameOver = false;
-        let victory = false;
-        let message = "";
-        if (empire.gold <= 0) { message = "Imperial treasury empty. The provinces descend into warlordism."; gameOver=true; }
-        else if (empire.food <= 0) { message = "Mass starvation collapses central authority."; gameOver=true; }
-        else if (empire.army <= 0) { message = "Legions shattered. Rebels storm the capital."; gameOver=true; }
-        else if (empire.approval <= 0) { message = "Palace coup deposes the Emperor."; gameOver=true; }
-        else if (rebelProvinces === Object.keys(provincesData).length) { message = "All provinces seceded — Mayjin dissolves."; gameOver=true; }
-        else if (empire.turn >= 20 && empire.approval >= 45 && empire.army > 20) { victory = true; message = "You stabilized the realm for 20 turns! The Mayjin Empire enters a golden age."; gameOver=true; }
-        
-        if (gameOver) {
-            document.getElementById("modalTitle").innerText = victory ? "★ VICTORY ★" : "⚔️ EMPIRE LOST ⚔️";
-            document.getElementById("modalTitle").style.color = victory ? "#a3ffb5" : "#ff7070";
-            document.getElementById("modalMsg").innerHTML = message + "<br><br>Your dynasty's fate is sealed.";
-            document.getElementById("endModal").classList.remove("hidden");
-            return;
-        }
-        
-        // reset panel to neutral after turn completion
-        selectedRegionId = null;
-        currentEvent = null;
-        document.getElementById("regionName").innerHTML = "IMPERIAL CITADEL";
-        document.getElementById("regionSub").innerText = "Select a province on the map";
-        document.getElementById("statLoyalty").innerText = "—";
-        document.getElementById("statTaxes").innerText = "—";
-        document.getElementById("statFood").innerText = "—";
-        document.getElementById("statMilitary").innerText = "—";
-        document.getElementById("rebelAlert").classList.add("hidden");
-        document.getElementById("eventDesc").innerHTML = "Turn processed. Choose a sector to address new challenges.";
-        document.getElementById("choicesContainer").innerHTML = "";
-        eventQueueTimer = false;
-        updateProvincePodsVisuals();
-    }
-    
-    // initial load
-    function initGame() {
-        buildOverlays();
-        updateUI();
-        // set capital atmosphere
-        document.getElementById("regionName").innerHTML = "MAYJIN THRONE";
-        document.getElementById("regionSub").innerText = "Click any province to issue decrees";
-    }
-    
-    initGame();
-</script>
+<script src="script.js"></script>
 </body>
 </html>
