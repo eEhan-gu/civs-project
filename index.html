@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mayjin Empire — Tactical Overlord Console</title>
+    <title>Mayjin Empire — Map Command</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="imperial-hud">
-    <div class="logo">⚡ MAYJIN EMPIRE</div>
+    <div class="logo">🗺️ MAYJIN EMPIRE</div>
     <div class="metric-strip">
         <div class="metric-card"><div class="metric-label">TURN</div><div class="metric-value turn" id="ui-turn">1</div></div>
         <div class="metric-card"><div class="metric-label">GOLD</div><div class="metric-value gold" id="ui-gold">160</div></div>
@@ -21,39 +21,29 @@
 </div>
 
 <div class="command-pavilion">
-    <!-- LEFT COLUMN: 3 PROVINCES (CLICKABLE) -->
-    <div class="provinces-panel">
-        <div class="region-header"><span>⚙️ SECTOR-04B // TERRITORIAL NODES</span><span>🌡️ TEMP GRADIENT: -15°C ~ -8°C</span></div>
-        
-        <div id="card-north" class="province-card" data-prov="north">
-            <div class="province-name">NORTH PLAINS <span class="status-badge status-secure" id="badge-north">SECURE</span></div>
-            <div class="province-details">
-                <span>💰 26g</span> <span>🌾 42f</span> <span>⚔️ 22</span> <span>🌡️ -12°C</span> <span>🌾 Grain fields</span>
-            </div>
+    <!-- LEFT: STRATEGIC MAP WITH IMAGE + CLICKABLE OVERLAYS -->
+    <div class="holo-map">
+        <div class="map-header">
+            <span>📍 MAPID: SECTOR-04B // WESTMOUNTAINS // SOUTHERNSEA</span>
+            <span>🕒 SYSTEMTIME: 21:47</span>
         </div>
-
-        <div id="card-south" class="province-card" data-prov="south">
-            <div class="province-name">SOUTH VALLEY <span class="status-badge status-secure" id="badge-south">SECURE</span></div>
-            <div class="province-details">
-                <span>💰 22g</span> <span>🌾 48f</span> <span>⚔️ 24</span> <span>🌡️ -12°C</span> <span>🌿 Fertile lowlands</span>
-            </div>
+        <div class="map-wrapper">
+            <img class="tactical-image" src="image.png" alt="Imperial Map" onerror="this.src='https://placehold.co/1200x800/0a1120/3e6a9e?text=MAP+LOADING'">
+            <div class="map-overlays" id="regionOverlays"></div>
+            <div class="capital-core" style="top: 48%; left: 48%;">🏰</div>
         </div>
-
-        <div id="card-east" class="province-card" data-prov="east">
-            <div class="province-name">EAST PORT <span class="status-badge status-secure" id="badge-east">SECURE</span></div>
-            <div class="province-details">
-                <span>💰 38g</span> <span>🌾 16f</span> <span>⚔️ 18</span> <span>🌡️ -15°C</span> <span>⚓ Maritime trade</span>
-            </div>
+        <div class="map-footer" style="padding: 12px 24px; border-top: 1px solid #1b2d44; display: flex; justify-content: space-between;">
+            <span>❄️ TEMP gradient: -15°C to -8°C</span>
+            <span>Click any province on the map</span>
         </div>
-        <div class="map-footer">🗺️ MAPID: SECTOR-04B // WESTMOUNTAINS // SOUTHERNSEA  —  SYSTEMTIME: 21:47</div>
     </div>
 
-    <!-- RIGHT PANEL: GOVERNANCE DECK -->
+    <!-- RIGHT PANEL: GOVERNANCE DECK (unchanged) -->
     <div class="governance-deck" id="governanceDeck">
         <div class="deck-header">
             <h2 id="regionName">IMPERIAL CITADEL</h2>
             <div id="rebelAlert" class="warning-badge hidden">⚠️ REBELLION IMMINENT</div>
-            <div style="font-size: 12px; color: #8eaec9; margin-top: 8px;" id="regionSub">Select a province from the left sector</div>
+            <div style="font-size: 12px; color: #8eaec9; margin-top: 8px;" id="regionSub">Click a province on the map</div>
         </div>
         <div class="stat-panel" id="provinceStats">
             <div class="stat-item"><div class="stat-label">LOYALTY</div><div class="stat-number" id="statLoyalty">—</div></div>
@@ -63,7 +53,7 @@
         </div>
         <div class="event-card" id="eventCard">
             <div class="event-title" id="eventTitle">⚜️ IMPERIAL DECREE</div>
-            <div class="event-desc" id="eventDesc">Click any region to access crisis management console. The Empire awaits your command.</div>
+            <div class="event-desc" id="eventDesc">Select any region on the tactical map to manage crises.</div>
             <div class="choice-buttons" id="choicesContainer"></div>
         </div>
     </div>

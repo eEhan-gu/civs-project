@@ -8,7 +8,10 @@ const provinces = {
         food: 42,
         military: 22,
         temp: "-12°C",
-        resource: "Grain fields"
+        resource: "Grain fields",
+        // Position from image: top-left area near "NORTH PLAINS" text
+        top: "12%",
+        left: "12%"
     },
     south: {
         id: "south",
@@ -18,7 +21,10 @@ const provinces = {
         food: 48,
         military: 24,
         temp: "-12°C",
-        resource: "Fertile lowlands"
+        resource: "Fertile lowlands",
+        // Middle-left area
+        top: "58%",
+        left: "10%"
     },
     east: {
         id: "east",
@@ -28,7 +34,10 @@ const provinces = {
         food: 16,
         military: 18,
         temp: "-15°C",
-        resource: "Maritime trade"
+        resource: "Maritime trade",
+        // Right side, near "EAST PORT"
+        top: "38%",
+        left: "72%"
     }
 };
 
@@ -46,7 +55,7 @@ let selectedProvinceId = null;
 let activeEvent = null;
 let processingFlag = false;
 
-// ---------- EVENT LIBRARY (tailored for 3 provinces) ----------
+// ---------- EVENT LIBRARY ----------
 const eventPool = [
     {
         id: "famine_front",
@@ -103,7 +112,6 @@ const eventPool = [
     }
 ];
 
-// Helper: update UI metrics
 function updateHUD() {
     document.getElementById("ui-turn").innerText = empire.turn;
     document.getElementById("ui-gold").innerText = Math.floor(empire.gold);
@@ -111,41 +119,59 @@ function updateHUD() {
     document.getElementById("ui-army").innerText = Math.floor(empire.army);
     document.getElementById("ui-approval").innerText = Math.floor(empire.approval);
     document.getElementById("ui-religion").innerText = Math.floor(empire.religion);
-    updateProvinceCardsVisual();
+    updateProvincePodsVisual();
 }
 
-function updateProvinceCardsVisual() {
+function updateProvincePodsVisual() {
     for (let [id, prov] of Object.entries(provinces)) {
-        const card = document.getElementById(`card-${id}`);
-        const badgeSpan = document.getElementById(`badge-${id}`);
-        if (card && badgeSpan) {
+        const podEl = document.getElementById(`pod-${id}`);
+        if (podEl) {
+            const statusSpan = podEl.querySelector('.pod-status');
             if (prov.loyalty <= 40) {
-                card.classList.add("rebel-threat");
-                badgeSpan.innerText = "REBELLION RISK";
-                badgeSpan.className = "status-badge status-risk";
+                podEl.classList.add("rebel-glint");
+                if(statusSpan) { statusSpan.innerText = "⚡ REBELLION RISK"; statusSpan.className = "pod-status status-rebel"; }
             } else {
-                card.classList.remove("rebel-threat");
-                badgeSpan.innerText = "SECURE";
-                badgeSpan.className = "status-badge status-secure";
+                podEl.classList.remove("rebel-glint");
+                if(statusSpan) { statusSpan.innerText = "● SECURE"; statusSpan.className = "pod-status status-safe"; }
             }
         }
     }
 }
 
-// pick random event for a province
-function getRandomEventForProvince(provId) {
-    const possible = eventPool.filter(ev => ev.affected.includes(provId));
-    if (possible.length === 0) return eventPool[0]; // fallback
-    const rand = Math.floor(Math.random() * possible.length);
-    return { ...possible[rand] };
+// Build clickable overlays on the map image
+function buildMapOverlays() {
+    const container = document.getElementById("regionOverlays");
+    container.innerHTML = "";
+    for (let [id, data] of Object.entries(provinces)) {
+        const pod = document.createElement("div");
+        pod.className = "region-pod";
+        pod.id = `pod-${id}`;
+        pod.style.top = data.top;
+        pod.style.left = data.left;
+        pod.style.transform = "translate(-5%, -5%)";
+        const loyalState = data.loyalty <= 40 ? "REBELLION RISK" : "SECURE";
+        const statusClass = data.loyalty <= 40 ? "status-rebel" : "status-safe";
+        pod.innerHTML = `
+            <div class="pod-title">${data.name}</div>
+            <div class="pod-status ${statusClass}">● ${loyalState}</div>
+            <div class="pod-detail">💰 ${data.taxes}g  🌾 ${data.food}f  ⚔️ ${data.military}</div>
+            <div class="pod-detail">🌡️ ${data.temp} | ${data.resource}</div>
+        `;
+        pod.onclick = (e) => {
+            e.stopPropagation();
+            selectProvince(id);
+        };
+        container.appendChild(pod);
+    }
+    updateProvincePodsVisual();
 }
 
-// show event & choices
-function loadProvinceEvents(provId) {
+function selectProvince(provId) {
+    if (processingFlag) return;
+    if (selectedProvinceId === provId) return;
+    selectedProvinceId = provId;
     const prov = provinces[provId];
-    if (!prov) return;
     
-    // update right panel stats
     document.getElementById("regionName").innerHTML = prov.name;
     document.getElementById("regionSub").innerText = "Active directive panel";
     document.getElementById("statLoyalty").innerHTML = prov.loyalty + "%";
@@ -157,8 +183,8 @@ function loadProvinceEvents(provId) {
     if (prov.loyalty <= 40) rebelAlert.classList.remove("hidden");
     else rebelAlert.classList.add("hidden");
     
-    // generate crisis
-    const crisis = getRandomEventForProvince(provId);
+    const possibleEvents = eventPool.filter(ev => ev.affected.includes(provId));
+    let crisis = possibleEvents.length ? possibleEvents[Math.floor(Math.random() * possibleEvents.length)] : eventPool[0];
     activeEvent = { ...crisis, targetProvince: provId };
     document.getElementById("eventTitle").innerHTML = crisis.title;
     document.getElementById("eventDesc").innerHTML = crisis.desc;
@@ -174,32 +200,27 @@ function loadProvinceEvents(provId) {
     });
 }
 
-// Apply decision & end turn
 function applyDecision(choice, provId) {
     if (processingFlag) return;
     processingFlag = true;
     
     const province = provinces[provId];
-    // apply empire effects
     if (choice.effect.empire) {
         for (let [key, delta] of Object.entries(choice.effect.empire)) {
             if (empire[key] !== undefined) empire[key] = Math.max(0, empire[key] + delta);
         }
     }
-    // apply province effects (loyalty, taxes, food, military)
     if (choice.effect.state) {
         for (let [key, delta] of Object.entries(choice.effect.state)) {
             if (province[key] !== undefined) province[key] = Math.max(0, province[key] + delta);
         }
     }
-    // clamp values
     province.loyalty = Math.min(100, Math.max(0, province.loyalty));
     province.taxes = Math.max(0, province.taxes);
     province.food = Math.max(0, province.food);
     province.military = Math.max(0, province.military);
     
     updateHUD();
-    // update right panel if still selected same province
     if (selectedProvinceId === provId) {
         document.getElementById("statLoyalty").innerHTML = province.loyalty + "%";
         document.getElementById("statTaxes").innerHTML = `+${province.taxes}g`;
@@ -209,7 +230,6 @@ function applyDecision(choice, provId) {
         else document.getElementById("rebelAlert").classList.add("hidden");
     }
     
-    // Disable choices & show processing
     const choicesDiv = document.getElementById("choicesContainer");
     choicesDiv.innerHTML = '<div class="processing-tag">📜 Imperial decree enacted. Harvesting tributes...</div>';
     
@@ -219,53 +239,42 @@ function applyDecision(choice, provId) {
 }
 
 function finishTurnAndHarvest() {
-    let incomeGold = 0;
-    let incomeFood = 0;
-    let rebelProvinceCount = 0;
-    
+    let incomeGold = 0, incomeFood = 0, rebelCount = 0;
     for (let [id, prov] of Object.entries(provinces)) {
         const isRebel = prov.loyalty <= 40;
         if (isRebel) {
             incomeGold += Math.floor(prov.taxes * 0.25);
             incomeFood += Math.floor(prov.food * 0.25);
             empire.approval = Math.max(0, empire.approval - 5);
-            rebelProvinceCount++;
+            rebelCount++;
         } else {
             incomeGold += prov.taxes;
             incomeFood += prov.food;
         }
     }
-    
     empire.gold += incomeGold;
     empire.food += incomeFood;
     empire.turn += 1;
-    // mild approval recovery or penalty based on rebels
-    if (rebelProvinceCount === 0) empire.approval = Math.min(100, empire.approval + 2);
-    else if (rebelProvinceCount >= 2) empire.approval = Math.max(0, empire.approval - 3);
+    if (rebelCount === 0) empire.approval = Math.min(100, empire.approval + 2);
+    else if (rebelCount >= 2) empire.approval = Math.max(0, empire.approval - 3);
     empire.approval = Math.min(100, Math.max(0, empire.approval));
-    
-    // army attrition based on unrest
-    if (rebelProvinceCount > 0) empire.army = Math.max(0, empire.army - Math.floor(rebelProvinceCount * 1.2));
+    if (rebelCount > 0) empire.army = Math.max(0, empire.army - Math.floor(rebelCount * 1.2));
     
     updateHUD();
     
-    // ---- LOSS / VICTORY CONDITIONS ----
-    let gameEnd = false;
-    let victoryFlag = false;
-    let msg = "";
-    if (empire.gold <= 0) { msg = "Treasury depleted. Economy collapses, Empire fractures."; gameEnd = true; }
-    else if (empire.food <= 0) { msg = "Starvation riots consume the capital. Mayjin falls."; gameEnd = true; }
+    let gameEnd = false, victoryFlag = false, msg = "";
+    if (empire.gold <= 0) { msg = "Treasury depleted. Economy collapses."; gameEnd = true; }
+    else if (empire.food <= 0) { msg = "Starvation riots consume the capital."; gameEnd = true; }
     else if (empire.army <= 0) { msg = "Imperial legions annihilated. Rebels seize the throne."; gameEnd = true; }
-    else if (empire.approval <= 0) { msg = "Popular uprising overthrows the emperor. Dynasty ends."; gameEnd = true; }
+    else if (empire.approval <= 0) { msg = "Popular uprising overthrows the emperor."; gameEnd = true; }
     else {
         let allRebel = true;
         for (let p of Object.values(provinces)) if (p.loyalty > 40) { allRebel = false; break; }
         if (allRebel) { msg = "Every province seceded. The Mayjin Empire is no more."; gameEnd = true; }
     }
-    
     if (!gameEnd && empire.turn >= 15 && empire.approval >= 40 && empire.army >= 15) {
         victoryFlag = true;
-        msg = "You have navigated 15 turns of turmoil! The Mayjin Empire stands resilient and enters a new golden age. VICTORY!";
+        msg = "You have navigated 15 turns of turmoil! The Mayjin Empire enters a golden age. VICTORY!";
         gameEnd = true;
     }
     
@@ -275,43 +284,28 @@ function finishTurnAndHarvest() {
         document.getElementById("modalTitle").style.color = victoryFlag ? "#a3ffb5" : "#ff8989";
         document.getElementById("modalMsg").innerHTML = msg + "<br><br>Restart to forge a new destiny.";
         modal.classList.remove("hidden");
-        processingFlag = true; // freeze
+        processingFlag = true;
         return;
     }
     
-    // reset governance panel to idle
     selectedProvinceId = null;
     activeEvent = null;
     document.getElementById("regionName").innerHTML = "IMPERIAL CITADEL";
-    document.getElementById("regionSub").innerText = "Select a province from the left sector";
+    document.getElementById("regionSub").innerText = "Click a province on the map";
     document.getElementById("statLoyalty").innerHTML = "—";
     document.getElementById("statTaxes").innerHTML = "—";
     document.getElementById("statFood").innerHTML = "—";
     document.getElementById("statMilitary").innerHTML = "—";
     document.getElementById("rebelAlert").classList.add("hidden");
     document.getElementById("eventTitle").innerHTML = "⚜️ IMPERIAL DECREE";
-    document.getElementById("eventDesc").innerHTML = "Turn resolved. Choose another province to continue your reign.";
+    document.getElementById("eventDesc").innerHTML = "Turn resolved. Select another region on the map.";
     document.getElementById("choicesContainer").innerHTML = "";
     processingFlag = false;
 }
 
-// province card click handler
-function onProvinceClick(provId) {
-    if (processingFlag) return;
-    if (selectedProvinceId === provId) return;
-    selectedProvinceId = provId;
-    loadProvinceEvents(provId);
-}
-
-// attach listeners to cards
-document.getElementById("card-north").addEventListener("click", () => onProvinceClick("north"));
-document.getElementById("card-south").addEventListener("click", () => onProvinceClick("south"));
-document.getElementById("card-east").addEventListener("click", () => onProvinceClick("east"));
-
-// initial sync
 function init() {
+    buildMapOverlays();
     updateHUD();
-    updateProvinceCardsVisual();
     selectedProvinceId = null;
     processingFlag = false;
 }
