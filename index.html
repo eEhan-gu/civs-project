@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mayjin Empire — Map Command</title>
+    <title>Mayjin Empire — North Plains Dominion</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,20 +21,39 @@
 </div>
 
 <div class="command-pavilion">
-    <!-- LEFT: STRATEGIC MAP WITH IMAGE + CLICKABLE OVERLAYS -->
-    <div class="holo-map">
-        <div class="map-header">
-            <span>📍 MAPID: SECTOR-04B // WESTMOUNTAINS // SOUTHERNSEA</span>
-            <span>🕒 SYSTEMTIME: 21:47</span>
+    <!-- LEFT: 3 CLICKABLE CARDS, ALL USING THE NORTH PLAINS IMAGE -->
+    <div class="provinces-container">
+        <div class="region-header">
+            <span>⚙️ SECTOR-04B // NORTHERN TERRITORIES</span>
+            <span>🌡️ TEMP: -12°C to -15°C</span>
         </div>
-        <div class="map-wrapper">
-            <img class="tactical-image" src="image.png" alt="Imperial Map" onerror="this.src='https://placehold.co/1200x800/0a1120/3e6a9e?text=MAP+LOADING'">
-            <div class="map-overlays" id="regionOverlays"></div>
-            <div class="capital-core" style="top: 48%; left: 48%;">🏰</div>
+        
+        <!-- North Plains Card -->
+        <div id="card-north" class="province-card" data-prov="north">
+            <img src="Screenshot 2026-05-26 7.15.39 PM.png" alt="North Plains" class="province-img" onerror="this.src='https://placehold.co/400x200/0a1422/7dd3fc?text=NORTH+PLAINS'">
+            <div class="card-overlay">
+                <div class="card-status" id="badge-north">SECURE</div>
+            </div>
         </div>
-        <div class="map-footer" style="padding: 12px 24px; border-top: 1px solid #1b2d44; display: flex; justify-content: space-between;">
-            <span>❄️ TEMP gradient: -15°C to -8°C</span>
-            <span>Click any province on the map</span>
+
+        <!-- South Valley Card (visually same as North Plains) -->
+        <div id="card-south" class="province-card" data-prov="south">
+            <img src="Screenshot 2026-05-26 7.15.39 PM.png" alt="South Valley" class="province-img" onerror="this.src='https://placehold.co/400x200/0a1422/7dd3fc?text=SOUTH+VALLEY'">
+            <div class="card-overlay">
+                <div class="card-status" id="badge-south">SECURE</div>
+            </div>
+        </div>
+
+        <!-- East Port Card (visually same as North Plains) -->
+        <div id="card-east" class="province-card" data-prov="east">
+            <img src="Screenshot 2026-05-26 7.15.39 PM.png" alt="East Port" class="province-img" onerror="this.src='https://placehold.co/400x200/0a1422/7dd3fc?text=EAST+PORT'">
+            <div class="card-overlay">
+                <div class="card-status" id="badge-east">SECURE</div>
+            </div>
+        </div>
+
+        <div class="map-footer">
+            🗺️ MAPID: SECTOR-04B // WESTMOUNTAINS // SOUTHERNSEA — SYSTEMTIME: 21:47
         </div>
     </div>
 
@@ -43,7 +62,7 @@
         <div class="deck-header">
             <h2 id="regionName">IMPERIAL CITADEL</h2>
             <div id="rebelAlert" class="warning-badge hidden">⚠️ REBELLION IMMINENT</div>
-            <div style="font-size: 12px; color: #8eaec9; margin-top: 8px;" id="regionSub">Click a province on the map</div>
+            <div style="font-size: 12px; color: #8eaec9; margin-top: 8px;" id="regionSub">Click a province card</div>
         </div>
         <div class="stat-panel" id="provinceStats">
             <div class="stat-item"><div class="stat-label">LOYALTY</div><div class="stat-number" id="statLoyalty">—</div></div>
@@ -53,7 +72,7 @@
         </div>
         <div class="event-card" id="eventCard">
             <div class="event-title" id="eventTitle">⚜️ IMPERIAL DECREE</div>
-            <div class="event-desc" id="eventDesc">Select any region on the tactical map to manage crises.</div>
+            <div class="event-desc" id="eventDesc">Select any province card to manage crises.</div>
             <div class="choice-buttons" id="choicesContainer"></div>
         </div>
     </div>

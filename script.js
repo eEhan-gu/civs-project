@@ -8,10 +8,7 @@ const provinces = {
         food: 42,
         military: 22,
         temp: "-12°C",
-        resource: "Grain fields",
-        // Position from image: top-left area near "NORTH PLAINS" text
-        top: "12%",
-        left: "12%"
+        resource: "Grain fields"
     },
     south: {
         id: "south",
@@ -21,10 +18,7 @@ const provinces = {
         food: 48,
         military: 24,
         temp: "-12°C",
-        resource: "Fertile lowlands",
-        // Middle-left area
-        top: "58%",
-        left: "10%"
+        resource: "Fertile lowlands"
     },
     east: {
         id: "east",
@@ -34,10 +28,7 @@ const provinces = {
         food: 16,
         military: 18,
         temp: "-15°C",
-        resource: "Maritime trade",
-        // Right side, near "EAST PORT"
-        top: "38%",
-        left: "72%"
+        resource: "Maritime trade"
     }
 };
 
@@ -119,51 +110,25 @@ function updateHUD() {
     document.getElementById("ui-army").innerText = Math.floor(empire.army);
     document.getElementById("ui-approval").innerText = Math.floor(empire.approval);
     document.getElementById("ui-religion").innerText = Math.floor(empire.religion);
-    updateProvincePodsVisual();
+    updateProvinceCardsVisual();
 }
 
-function updateProvincePodsVisual() {
+function updateProvinceCardsVisual() {
     for (let [id, prov] of Object.entries(provinces)) {
-        const podEl = document.getElementById(`pod-${id}`);
-        if (podEl) {
-            const statusSpan = podEl.querySelector('.pod-status');
+        const card = document.getElementById(`card-${id}`);
+        const badgeSpan = document.getElementById(`badge-${id}`);
+        if (card && badgeSpan) {
             if (prov.loyalty <= 40) {
-                podEl.classList.add("rebel-glint");
-                if(statusSpan) { statusSpan.innerText = "⚡ REBELLION RISK"; statusSpan.className = "pod-status status-rebel"; }
+                card.classList.add("rebel-threat");
+                badgeSpan.innerText = "REBELLION RISK";
+                badgeSpan.className = "card-status status-risk";
             } else {
-                podEl.classList.remove("rebel-glint");
-                if(statusSpan) { statusSpan.innerText = "● SECURE"; statusSpan.className = "pod-status status-safe"; }
+                card.classList.remove("rebel-threat");
+                badgeSpan.innerText = "SECURE";
+                badgeSpan.className = "card-status status-secure";
             }
         }
     }
-}
-
-// Build clickable overlays on the map image
-function buildMapOverlays() {
-    const container = document.getElementById("regionOverlays");
-    container.innerHTML = "";
-    for (let [id, data] of Object.entries(provinces)) {
-        const pod = document.createElement("div");
-        pod.className = "region-pod";
-        pod.id = `pod-${id}`;
-        pod.style.top = data.top;
-        pod.style.left = data.left;
-        pod.style.transform = "translate(-5%, -5%)";
-        const loyalState = data.loyalty <= 40 ? "REBELLION RISK" : "SECURE";
-        const statusClass = data.loyalty <= 40 ? "status-rebel" : "status-safe";
-        pod.innerHTML = `
-            <div class="pod-title">${data.name}</div>
-            <div class="pod-status ${statusClass}">● ${loyalState}</div>
-            <div class="pod-detail">💰 ${data.taxes}g  🌾 ${data.food}f  ⚔️ ${data.military}</div>
-            <div class="pod-detail">🌡️ ${data.temp} | ${data.resource}</div>
-        `;
-        pod.onclick = (e) => {
-            e.stopPropagation();
-            selectProvince(id);
-        };
-        container.appendChild(pod);
-    }
-    updateProvincePodsVisual();
 }
 
 function selectProvince(provId) {
@@ -291,21 +256,27 @@ function finishTurnAndHarvest() {
     selectedProvinceId = null;
     activeEvent = null;
     document.getElementById("regionName").innerHTML = "IMPERIAL CITADEL";
-    document.getElementById("regionSub").innerText = "Click a province on the map";
+    document.getElementById("regionSub").innerText = "Click a province card";
     document.getElementById("statLoyalty").innerHTML = "—";
     document.getElementById("statTaxes").innerHTML = "—";
     document.getElementById("statFood").innerHTML = "—";
     document.getElementById("statMilitary").innerHTML = "—";
     document.getElementById("rebelAlert").classList.add("hidden");
     document.getElementById("eventTitle").innerHTML = "⚜️ IMPERIAL DECREE";
-    document.getElementById("eventDesc").innerHTML = "Turn resolved. Select another region on the map.";
+    document.getElementById("eventDesc").innerHTML = "Turn resolved. Select another province card.";
     document.getElementById("choicesContainer").innerHTML = "";
     processingFlag = false;
 }
 
+// Attach click handlers to cards
+document.getElementById("card-north").addEventListener("click", () => selectProvince("north"));
+document.getElementById("card-south").addEventListener("click", () => selectProvince("south"));
+document.getElementById("card-east").addEventListener("click", () => selectProvince("east"));
+
+// Initialization
 function init() {
-    buildMapOverlays();
     updateHUD();
+    updateProvinceCardsVisual();
     selectedProvinceId = null;
     processingFlag = false;
 }
